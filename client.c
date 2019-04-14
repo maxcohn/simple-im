@@ -15,7 +15,8 @@
 #define PORT 5467
 #define BUFFER_SIZE 1024
 
-
+// return value of the listener thread. used to tell if connection was lost
+static int thread_ret = 1;
 
 void print_usage(void){
     printf("Usage: chat-client [username]\n");
@@ -38,7 +39,14 @@ void *client_listener(void *socket){
     // main listening loop
     while(1){
         // read data from socket
-        if(recv(socket_id, buffer, BUFFER_SIZE, 0) < 0){
+        thread_ret = recv(socket_id, buffer, BUFFER_SIZE, 0);
+        
+        // if the connect is closed, recv() returns 0
+        if(thread_ret == 0){
+            // close socket and thread
+            close(socket_id);
+            pthread_exit(&thread_ret);
+        }else if(thread_ret < 0){
             perror("Failed to read from user");
             return NULL;
         }
@@ -103,6 +111,12 @@ int main(int argc, char** argv){
     while(1){
         if (fgets(buffer, BUFFER_SIZE, stdin) == NULL)
             return -1;
+
+        // check if the listening thread ended due to lost connection
+        if(thread_ret == 0){
+            printf("Connection to server lost.\n");
+            exit(1);
+        }
 
         send(socket_id, buffer, strlen(buffer), 0);
 

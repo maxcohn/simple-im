@@ -263,7 +263,15 @@ void *server_listener(void *args){
     // main listening loop
     while(1){
         // read user input
-        if(recv(user->socket_id, buffer, BUFFER_SIZE, 0) < 0){
+        int ret = recv(user->socket_id, buffer, BUFFER_SIZE, 0);
+        
+        // if user closed the socket, recv() returns 0
+        if(ret == 0){          
+            // close our connecting to the user and end the thread
+            close(user->socket_id);
+            pthread_exit(&ret);
+
+        }else if(ret < 0){
             perror("Failed to read from user");
             return NULL;
         }
