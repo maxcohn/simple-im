@@ -35,4 +35,4 @@ and threading.
     * Should thread code belong in it's own file?
 * Document all code
 * Handle users disconnecting
-*
+* Make sure no memory/thread leaks
