@@ -37,8 +37,10 @@ user_t *user_create(int socket_id, int user_id, char *username){
 
     new_user->socket_id = socket_id;
     new_user->user_id = user_id;
+    new_user->username = NULL;
 
-    new_user->username = malloc(strlen(username) + 1);
+    new_user->username = calloc(strlen(username) + 1, sizeof(char));
+    
     strncpy(new_user->username, username, strlen(username));
 
     new_user->thread = malloc(sizeof(pthread_t));
@@ -81,6 +83,7 @@ void user_login(List *cur_users, user_t *new_user){
  * @param user_id ID of user to be removed
  */
 void user_logout(List *cur_users, int id){
+    //TODO take user_t* instad of int for id???
     for(int i = 0; i < list_size(cur_users); i++){
         user_t *u = (user_t *) list_get(cur_users, i);
         if(u->user_id == id){
@@ -155,13 +158,22 @@ int setup_socket(struct sockaddr_in *addr, int *socket_id){
 
 //TODO document later
 void send_all_users(List *all_users, user_t *cur_user, char *buffer){
+    // create message for sending
+    // format: '<USERNAME>: <BUFFER>'
+    // length = username + ': ' + buffer + \0
+    unsigned int message_len = strlen(cur_user->username) + strlen(buffer) + 3;
+    char message[message_len];
+
+    sprintf(message, "%s: %s", cur_user->username, buffer);
+
+
     for(int i = 0; i < list_size(all_users); i++){
         user_t *user = (user_t *) list_get(all_users, i);
 
         // don't send to the user that created the message
         if(cur_user->user_id == user->user_id)
             continue;
-        send(user->socket_id, buffer, strlen(buffer), 0);
+        send(user->socket_id, message, strlen(message), 0);
     }
 }
 
@@ -208,7 +220,11 @@ int main(int argc, char **argv){
         // I do this because I can't let the scope of the struct end
         // before the values are used by the thread.
         pthread_create(new_user->thread, NULL, server_listener,
-            &((struct thread_args) {new_user, cur_users})) ;
+            &((struct thread_args) {new_user, cur_users}));
+        
+        // detaching the thread makes it so when the thread is terminated
+        // all its resources are automatically released. This prevents leaks.
+        pthread_detach(*(new_user->thread));
         
         printf("New user: %s (%d)\n", new_user->username, new_user->user_id);
 

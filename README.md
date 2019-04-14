@@ -11,7 +11,8 @@ This is completely for practice and example. This isn't intended to be
 used for any real application, but instead a neat exercise in sockets
 and threading.
 
-# Pieces
+# Sections
+
 ## Server
 
 1. The server established a socket which clients can connect to.
@@ -33,6 +34,8 @@ and threading.
 * Organize code
     * Should user_t struct code belong in it's own file?
     * Should thread code belong in it's own file?
+
+* Create safe exit for both client and server
+    * intercept SIGINT on server and clean up cur_users?
 * Document all code
-* Handle users disconnecting
 * Make sure no memory/thread leaks
