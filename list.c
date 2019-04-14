@@ -76,6 +76,15 @@ void list_remove(List *list, int index){
         return;
     }
 
+    // if we're removing the head of the list
+    if(index == 0){
+        struct node *old_head = list->head;
+        list->head = old_head->next;
+        node_delete(old_head);
+        list->size--;
+        return;
+    }
+
     struct node *prev_node = NULL;
     struct node *cur_node = list->head;
 

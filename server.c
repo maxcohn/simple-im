@@ -86,9 +86,8 @@ void user_logout(List *cur_users, int id){
         if(u->user_id == id){
             // remove all trace of the user
             list_remove(cur_users, i);
+            close(u->socket_id);
             user_delete(u);
-            
-            //TODO close thread here
             
             return;
         }
@@ -204,8 +203,6 @@ int main(int argc, char **argv){
         // add user to user list
         user_login(cur_users, new_user);
 
-        //TODO spawn new listener thread for user
-
         // That's some neat code in that it creates a compound literal
         // and passes a reference to it to the thread function.
         // I do this because I can't let the scope of the struct end
@@ -213,10 +210,7 @@ int main(int argc, char **argv){
         pthread_create(new_user->thread, NULL, server_listener,
             &((struct thread_args) {new_user, cur_users})) ;
         
-
         printf("New user: %s (%d)\n", new_user->username, new_user->user_id);
-
-        // spawn a new thread for the user
 
         // clear the buffer
         clear_buffer(buffer);
@@ -268,7 +262,9 @@ void *server_listener(void *args){
         // if user closed the socket, recv() returns 0
         if(ret == 0){          
             // close our connecting to the user and end the thread
-            close(user->socket_id);
+            printf("%s has left the chat.\n", user->username);
+            fflush(stdout);
+            user_logout(all_users, user->user_id);
             pthread_exit(&ret);
 
         }else if(ret < 0){
