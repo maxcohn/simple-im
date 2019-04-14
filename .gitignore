@@ -1,3 +1,6 @@
 *.o
+*.gch
 chat-client
 chat-server
+list-test
+.vscode/*

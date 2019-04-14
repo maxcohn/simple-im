@@ -38,7 +38,7 @@ void *client_listener(void *socket){
     // main listening loop
     while(1){
         // read data from socket
-        if(read(socket_id, buffer, BUFFER_SIZE) < 0){
+        if(recv(socket_id, buffer, BUFFER_SIZE, 0) < 0){
             perror("Failed to read from user");
             return NULL;
         }

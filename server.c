@@ -193,7 +193,7 @@ int main(int argc, char **argv){
         int new_socket_id = accept(socket_id, (struct sockaddr *) &address, &addrlen);
 
         // read in new connection's username
-        if(read(new_socket_id, buffer, BUFFER_SIZE) < 0){
+        if(recv(new_socket_id, buffer, BUFFER_SIZE, 0) < 0){
             perror("New user connection failed");
             continue;
         }
@@ -220,14 +220,6 @@ int main(int argc, char **argv){
 
         // clear the buffer
         clear_buffer(buffer);
-
-        //DEBUG print userlist
-        for(int i = 0; i < list_size(cur_users); i++){
-            user_t *u = list_get(cur_users, i);
-            printf("User: %s, ID: %d\n", u->username, u->user_id);
-        }
-
-
         
     }
 
@@ -271,7 +263,7 @@ void *server_listener(void *args){
     // main listening loop
     while(1){
         // read user input
-        if(read(user->socket_id, buffer, BUFFER_SIZE) < 0){
+        if(recv(user->socket_id, buffer, BUFFER_SIZE, 0) < 0){
             perror("Failed to read from user");
             return NULL;
         }
