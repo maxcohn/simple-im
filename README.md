@@ -38,4 +38,4 @@ and threading.
 * Create safe exit for both client and server
     * intercept SIGINT on server and clean up cur_users?
 * Document all code
-* Make sure no memory/thread leaks
+* Make sure no memory/thread leaks (only the list is left)

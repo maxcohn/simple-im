@@ -16,6 +16,7 @@
 // examplanation of 'struct sockaddr_in':
 //https://beej.us/guide/bgnet/html/multi/sockaddr_inman.html
 
+// #region User
 
 typedef struct user{
     int socket_id; // descriptor of accepted socket
@@ -97,6 +98,7 @@ void user_logout(List *cur_users, int id){
     }
 }
 
+
 //===============================================
 // Thread functions
 //===============================================
@@ -107,7 +109,44 @@ struct thread_args{
     List *cur_users;
 };
 
-void *server_listener(void *args);
+/**
+ * Listener thread function for retrieving client info
+ * 
+ * @param args thread_args pointer that stores argument info
+ */
+void *server_listener(void *args){
+
+    List *all_users = ((struct thread_args *) args)->cur_users;
+    user_t *user = ((struct thread_args *) args)->user;
+    char buffer[BUFFER_SIZE] = {0};
+
+    // main listening loop
+    while(1){
+        // read user input
+        int ret = recv(user->socket_id, buffer, BUFFER_SIZE, 0);
+        
+        // if user closed the socket, recv() returns 0
+        if(ret == 0){          
+            // close our connecting to the user and end the thread
+            printf("%s has left the chat.\n", user->username);
+            fflush(stdout);
+            user_logout(all_users, user->user_id);
+            pthread_exit(&ret);
+
+        }else if(ret < 0){
+            perror("Failed to read from user");
+            return NULL;
+        }
+
+        printf("%s: %s", user->username, buffer);
+
+        // send message to all other users
+        send_all_users(all_users, user, buffer);
+
+        clear_buffer(buffer);
+        
+    }
+}
 
 /**
  * Resets the buffer 
@@ -250,50 +289,4 @@ int main(int argc, char **argv){
 
 
     return 0;
-}
-
-
-
-
-
-
-
-
-/**
- * Listener thread function for retrieving client info
- * 
- * @param args thread_args pointer that stores argument info
- */
-void *server_listener(void *args){
-
-    List *all_users = ((struct thread_args *) args)->cur_users;
-    user_t *user = ((struct thread_args *) args)->user;
-    char buffer[BUFFER_SIZE] = {0};
-
-    // main listening loop
-    while(1){
-        // read user input
-        int ret = recv(user->socket_id, buffer, BUFFER_SIZE, 0);
-        
-        // if user closed the socket, recv() returns 0
-        if(ret == 0){          
-            // close our connecting to the user and end the thread
-            printf("%s has left the chat.\n", user->username);
-            fflush(stdout);
-            user_logout(all_users, user->user_id);
-            pthread_exit(&ret);
-
-        }else if(ret < 0){
-            perror("Failed to read from user");
-            return NULL;
-        }
-
-        printf("%s: %s", user->username, buffer);
-
-        // send message to all other users
-        send_all_users(all_users, user, buffer);
-
-        clear_buffer(buffer);
-        
-    }
 }
