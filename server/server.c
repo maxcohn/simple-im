@@ -8,95 +8,14 @@
 #include <pthread.h>
 
 #include "server.h"
-#include "list.h"
+#include "../utils/list.h"
+#include "../utils/user.h"
 
 #define PORT 5467
 #define BUFFER_SIZE 1024
 
-// examplanation of 'struct sockaddr_in':
+// explanation of 'struct sockaddr_in':
 //https://beej.us/guide/bgnet/html/multi/sockaddr_inman.html
-
-// #region User
-
-typedef struct user{
-    int socket_id; // descriptor of accepted socket
-    int user_id; // numerical ID to track users
-    char *username; // username
-    pthread_t *thread; // listener thread for user
-} user_t;
-
-//TODO flesh this out
-user_t *user_create(int socket_id, int user_id, char *username);
-void user_delete(user_t *user);
-
-
-//===============================================================
-// user_t functions
-//===============================================================
-user_t *user_create(int socket_id, int user_id, char *username){
-    user_t *new_user = malloc(sizeof(user_t));
-
-    new_user->socket_id = socket_id;
-    new_user->user_id = user_id;
-    new_user->username = NULL;
-
-    new_user->username = calloc(strlen(username) + 1, sizeof(char));
-    
-    strncpy(new_user->username, username, strlen(username));
-
-    new_user->thread = malloc(sizeof(pthread_t));
-
-    return new_user;
-}
-
-void user_delete(user_t *user){
-    free(user->username);
-    free(user->thread);
-    free(user);
-}
-
-
-
-
-//TODO figure out if i should move everything related to user and user_list
-//TODO into its own file
-
-//================================================================
-// User list functions
-//================================================================
-
-/**
- * Adds a new user to the list of current users
- * 
- * @param cur_users List of current users
- * @param new_user User to add to list
- */
-void user_login(List *cur_users, user_t *new_user){
-    list_append(cur_users, (void *) new_user);
-
-    //TODO spawn thread here?
-}
-
-/**
- * Removes the given user from the list of current users
- * 
- * @param cur_users List of current users
- * @param user_id ID of user to be removed
- */
-void user_logout(List *cur_users, int id){
-    //TODO take user_t* instad of int for id???
-    for(int i = 0; i < list_size(cur_users); i++){
-        user_t *u = (user_t *) list_get(cur_users, i);
-        if(u->user_id == id){
-            // remove all trace of the user
-            list_remove(cur_users, i);
-            close(u->socket_id);
-            user_delete(u);
-            
-            return;
-        }
-    }
-}
 
 
 //===============================================

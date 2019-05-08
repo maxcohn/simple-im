@@ -1,5 +1,7 @@
 // List data type
-//
+
+#ifndef LIST_H
+#define LIST_H
 
 struct node{
     void *data;
@@ -44,3 +46,4 @@ int list_size(List *list);
 
 int list_empty(List *list);
 
+#endif

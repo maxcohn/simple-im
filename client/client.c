@@ -19,7 +19,7 @@
 static int thread_ret = 1;
 
 void print_usage(void){
-    printf("Usage: chat-client [username]\n");
+    printf("Usage: chat-client ip username\n");
 }
 
 /**
@@ -59,9 +59,12 @@ void *client_listener(void *socket){
 }
 
 int main(int argc, char** argv){
+    // argv[0] = chat-client
+    // argv[1] = ip
+    // argv[2] = username
 
     // check arguemnts
-    if(argc != 2){
+    if(argc != 3){
         print_usage();
         exit(EXIT_FAILURE);
     }
@@ -71,9 +74,9 @@ int main(int argc, char** argv){
     char buffer[BUFFER_SIZE] = {0};
     pthread_t listener_thread;
 
-    char username[strlen(argv[1]) + 1];
+    char username[strlen(argv[2]) + 2];
 
-    strncpy(username, argv[1], strlen(argv[1]));
+    strncpy(username, argv[2], strlen(argv[2]));
 
     int socket_id = socket(AF_INET, SOCK_STREAM, 0);
 
@@ -88,7 +91,7 @@ int main(int argc, char** argv){
     server_addr.sin_family = AF_INET;
     server_addr.sin_port = htons(PORT);
 
-    if(inet_pton(AF_INET, "127.0.0.1", &server_addr.sin_addr) <= 0){
+    if(inet_pton(AF_INET, argv[1], &server_addr.sin_addr) <= 0){
         perror("Invalid address");
         exit(EXIT_FAILURE);
     }
@@ -122,11 +125,6 @@ int main(int argc, char** argv){
 
         clear_buffer(buffer);
     }
-
-
-
-    
-
 
     return 0;
 }
